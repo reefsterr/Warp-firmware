@@ -24,7 +24,7 @@ enum
 {
 	kSSD1331PinMOSI		= GPIO_MAKE_PIN(HW_GPIOA, 8),
 	kSSD1331PinSCK		= GPIO_MAKE_PIN(HW_GPIOA, 9),
-	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 13),
+	kSSD1331PinCSn		= GPIO_MAKE_PIN(HW_GPIOB, 11),
 	kSSD1331PinDC		= GPIO_MAKE_PIN(HW_GPIOA, 12),
 	kSSD1331PinRST		= GPIO_MAKE_PIN(HW_GPIOB, 0),
 };
@@ -77,7 +77,7 @@ devSSD1331init(void)
 	PORT_HAL_SetMuxMode(PORTA_BASE, 8u, kPortMuxAlt3);
 	PORT_HAL_SetMuxMode(PORTA_BASE, 9u, kPortMuxAlt3);
 
-	enableSPIpins();
+	warpEnableSPIpins();
 
 	/*
 	 *	Override Warp firmware's use of these pins.
@@ -139,21 +139,38 @@ devSSD1331init(void)
 	writeCommand(kSSD1331CommandCONTRASTC);		// 0x83
 	writeCommand(0x7D);
 	writeCommand(kSSD1331CommandDISPLAYON);		// Turn on oled panel
+	//writeCommand(0xA5);
 
 	/*
 	 *	To use fill commands, you will have to issue a command to the display to enable them. See the manual.
 	 */
-	writeCommand(kSSD1331CommandFILL);
-	writeCommand(0x01);
+
+	writeCommand(0x26); //enable filling
+	writeCommand(0xA1);
+	//writeCommand(kSSD1331CommandFILL);
+	//writeCommand(0x01);
+
+	writeCommand(0x22); //draw rectangle
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x7F);
+	writeCommand(0x3F);
+
+	writeCommand(0x00); //line colors
+	writeCommand(0xFF);
+	writeCommand(0x00);
+	writeCommand(0x00); //fill colors
+	writeCommand(0xFF);
+	writeCommand(0x00);
 
 	/*
 	 *	Clear Screen
 	 */
-	writeCommand(kSSD1331CommandCLEAR);
-	writeCommand(0x00);
-	writeCommand(0x00);
-	writeCommand(0x5F);
-	writeCommand(0x3F);
+	//writeCommand(kSSD1331CommandCLEAR);
+	//writeCommand(0x00);
+	//writeCommand(0x00);
+	//writeCommand(0x5F);
+	//writeCommand(0x3F);
 
 
 
@@ -165,4 +182,60 @@ devSSD1331init(void)
 
 
 	return 0;
+}
+
+int draw_rectangle(int x_start, int y_start, int x_end, int y_end, int red, int blue, int green){
+	writeCommand(0x22); //draw rectangle
+	writeCommand(x_start);
+	writeCommand(y_start);
+	writeCommand(x_end);
+	writeCommand(y_end);
+
+	writeCommand(red); //line colors
+	writeCommand(green);
+	writeCommand(blue);
+	writeCommand(red); //fill colors
+	writeCommand(green);
+	writeCommand(blue);
+
+	return 0;
+}
+
+void draw_number(int number, int position){
+	if(number == 4 || number == 5 || number == 6 || number == 8 || number == 9 || number == 0){
+		draw_rectangle(6 + 29 * position, 10, 10 + 29 * position, 30, 255, 0, 0);
+	}
+	if(number == 2 || number == 3 || number == 5 || number == 6 || number == 7 || number == 8 || number == 9 || number == 0){
+		draw_rectangle(6 + 29 * position, 10, 26 + 29 * position, 14, 255, 0, 0);
+	}
+	if(number == 1 || number == 2 || number == 3 || number == 4 || number == 7 || number == 8 || number == 9 || number == 0){
+		draw_rectangle(26 + 29 * position, 10, 30 + 29 * position, 30, 255, 0, 0);
+	}
+	if(number == 1 || number == 3 || number == 4 || number == 5 || number == 6 || number == 7 || number == 8 || number == 9 || number == 0){
+		draw_rectangle(26 + 29 * position, 34, 30 + 29 * position, 54, 255, 0, 0);
+	}
+	if(number == 2 || number == 3 || number == 4 || number == 5 || number == 6 || number == 8 || number == 9){
+		draw_rectangle(6 + 29 * position, 30, 30 + 29 * position, 34, 255, 0, 0);
+	}
+	if(number == 2 || number == 6 || number == 8 || number == 0){
+		draw_rectangle(6 + 29 * position, 34, 10 + 29 * position, 54, 255, 0, 0);
+	}
+	if(number == 2 || number == 3 || number == 5 || number == 6 || number == 8 || number == 0){
+		draw_rectangle(6 + 29 * position, 50, 26 + 29 * position, 54, 255, 0, 0);
+	}
+}
+
+void clear_screen(){
+	writeCommand(0x22); //draw rectangle
+	writeCommand(0x00);
+	writeCommand(0x00);
+	writeCommand(0x7F);
+	writeCommand(0x3F);
+
+	writeCommand(0x00); //line colors
+	writeCommand(0xFF);
+	writeCommand(0x00);
+	writeCommand(0x00); //fill colors
+	writeCommand(0xFF);
+	writeCommand(0x00);
 }

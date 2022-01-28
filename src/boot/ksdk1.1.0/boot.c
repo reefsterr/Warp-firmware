@@ -2037,32 +2037,42 @@ main(void)
 		}
 	#endif
 
-	int16_t values[50] = { 0 };
-	uint32_t previous_time = 0;
+	writeINARegister(0x00, 0x01, 0x9F); //Write to configuration register
+	writeINARegister(0x05, 0x20, 0x00); //Write to calibration register
+
+	//variables for rate calculations that persist between loops
+	int16_t values[50] = { 0 }; //stores accelerometer data
+	int16_t gaps[50] = { 0 }; //stores the time taken in each loop
+	int16_t previous_time = 0;
 	int current_first_digit = 0;
 	int current_second_digit = 0;
 	int current_third_digit = 0;
 
+	
+
 	while (1)
 	{
-		/*
-		 *	Do not, e.g., lowPowerPinStates() on each iteration, because we actually
-		 *	want to use menu to progressiveley change the machine state with various
-		 *	commands.
-		 */
-		//Looping through storing x acceleration for last ? values to determine rate
+		//Main loop: shifts data along, fetches new values, and analyses rate
 		int16_t x_val = getXVal();
 
-		for (int i = 0; i < 49; i++){
+		int16_t current_time = OSA_TimeGetMsec();
+		int16_t elapsed_time = current_time - previous_time;
+		previous_time = current_time;
+
+		for (int i = 0; i < 49; i++){ //shifts data along, making space for new data point and removing oldest
 			values[49-i] = values[48-i];
+			gaps[49-i] = gaps[48-i]; //why does this break it???
 		}
 
 		values[0] = x_val;
+		gaps[0] = elapsed_time;
 
-		//warpPrint("%d \n", x_val);
+		warpPrint("%d, ", gaps[1]); //why does this break??????
 
-		int16_t peaks[50] = { 0 };
+		int16_t peaks[50] = { 0 }; //array to store location of the peaks in the data
 
+		//identifies peaks in the data by looking for points above a threshold value, with 2 lower values either side
+		//maybe try one value either side?
 		for (int i = 0; i < 45; i++){
 			if(values[i+2] > values[i] && values[i+2] > values[i+1] && values[i+2] > values[i+3] && values[i+2] > values[i+4] && values[i+2] > 500){
 				peaks[i+2] = 1;
@@ -2070,10 +2080,13 @@ main(void)
 		}
 		
 		float gap = 0;
+		int16_t time_gap = 0;
 
+		//iterates through the peaks data to determine the time gap between strokes and therefore the length of the stroke
 		for (int i = 0; i < 50; i++){
 			if(peaks[i] == 1){
 				for (int j = i + 1; j < 50; j++){
+					time_gap = time_gap + gaps[j];
 					if(peaks[j] == 1){
 						gap = j - i;
 						break;
@@ -2084,15 +2097,11 @@ main(void)
 
 		float rate = 0.0f;
 
-		uint32_t current_time = OSA_TimeGetMsec();
-		uint32_t elapsed_time = current_time - previous_time;
-		previous_time = current_time;
-
-		if(gap > 1){
+		if(gap > 1){ //only calculate rate if there is a positive gap
 			rate = 60000.0f/(gap*(float)elapsed_time);
 		}
 
-		warpPrint("%d \n", (int)rate);
+		//warpPrint("rate = %d,", (int)rate);
 		clear_screen();
 		int hundred = (int)(rate/100) % 10;
 		int ten = (int)(rate/10) % 10;
@@ -2111,8 +2120,12 @@ main(void)
 			current_first_digit = hundred;
 		}
 
+		//retrieve current in microamps
+		uint8_t current = readINA(0x04, 2);
+		int16_t correctedValue = (((deviceINA219State.i2cBuffer[0] & 0xFF) << 8) | (deviceINA219State.i2cBuffer[1] & 0xFF))*50;
+		//warpPrint("current = %d,", correctedValue);
 
-		OSA_TimeDelay(100);
+		OSA_TimeDelay(100); //here to make the loop time more consistent (probably remove)
 	}
 
 	return 0;

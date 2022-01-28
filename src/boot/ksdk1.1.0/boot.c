@@ -2061,21 +2061,22 @@ main(void)
 
 		for (int i = 0; i < 49; i++){ //shifts data along, making space for new data point and removing oldest
 			values[49-i] = values[48-i];
-			gaps[49-i] = gaps[48-i]; //why does this break it???
+		}
+
+		for (int i = 0; i < 48; i++){ //shifts data along, making space for new data point and removing oldest
+			gaps[49-i] = gaps[48-i];
 		}
 
 		values[0] = x_val;
 		gaps[0] = elapsed_time;
 
-		warpPrint("%d, ", gaps[1]); //why does this break??????
-
 		int16_t peaks[50] = { 0 }; //array to store location of the peaks in the data
 
 		//identifies peaks in the data by looking for points above a threshold value, with 2 lower values either side
 		//maybe try one value either side?
-		for (int i = 0; i < 45; i++){
-			if(values[i+2] > values[i] && values[i+2] > values[i+1] && values[i+2] > values[i+3] && values[i+2] > values[i+4] && values[i+2] > 500){
-				peaks[i+2] = 1;
+		for (int i = 0; i < 49; i++){
+			if(values[i+1] > values[i] && values[i+1] > values[i+2] && values[i+1] > 500){
+				peaks[i+1] = 1;
 			}
 		}
 		
@@ -2086,10 +2087,11 @@ main(void)
 		for (int i = 0; i < 50; i++){
 			if(peaks[i] == 1){
 				for (int j = i + 1; j < 50; j++){
-					time_gap = time_gap + gaps[j];
+					time_gap = time_gap + 200;
 					if(peaks[j] == 1){
 						gap = j - i;
-						break;
+						j = 50;
+						i = 50;
 					}
 				}
 			}
@@ -2099,9 +2101,11 @@ main(void)
 
 		if(gap > 1){ //only calculate rate if there is a positive gap
 			rate = 60000.0f/(gap*(float)elapsed_time);
+			//rate = 60000.0f/(float)time_gap;
 		}
 
 		//warpPrint("rate = %d,", (int)rate);
+		//warpPrint("%d, ", elapsed_time);
 		clear_screen();
 		int hundred = (int)(rate/100) % 10;
 		int ten = (int)(rate/10) % 10;
@@ -2119,11 +2123,18 @@ main(void)
 			draw_number(hundred, 0);
 			current_first_digit = hundred;
 		}
+		/*draw_number(one, 2);
+		if(rate>10){
+			draw_number(ten, 1);
+		}
+		if(rate>100){
+			draw_number(hundred, 0);
+		}*/
 
 		//retrieve current in microamps
 		uint8_t current = readINA(0x04, 2);
 		int16_t correctedValue = (((deviceINA219State.i2cBuffer[0] & 0xFF) << 8) | (deviceINA219State.i2cBuffer[1] & 0xFF))*50;
-		//warpPrint("current = %d,", correctedValue);
+		warpPrint("%d,", correctedValue);
 
 		OSA_TimeDelay(100); //here to make the loop time more consistent (probably remove)
 	}

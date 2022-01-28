@@ -202,6 +202,8 @@ int draw_rectangle(int x_start, int y_start, int x_end, int y_end, int red, int 
 }
 
 void draw_number(int number, int position){
+	/*function to draw the necessary lines on the seven segment display
+	to show the given number in the required position*/
 	if(number == 4 || number == 5 || number == 6 || number == 8 || number == 9 || number == 0){
 		draw_rectangle(6 + 29 * position, 10, 10 + 29 * position, 30, 255, 0, 0);
 	}
@@ -226,6 +228,7 @@ void draw_number(int number, int position){
 }
 
 void clear_screen(){
+	//creates a blank screen by drawing a rectangle with the dimensions of the screen
 	writeCommand(0x22); //draw rectangle
 	writeCommand(0x00);
 	writeCommand(0x00);

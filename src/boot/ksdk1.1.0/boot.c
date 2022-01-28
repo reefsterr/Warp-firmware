@@ -2074,8 +2074,8 @@ main(void)
 
 		//identifies peaks in the data by looking for points above a threshold value, with 2 lower values either side
 		//maybe try one value either side?
-		for (int i = 0; i < 49; i++){
-			if(values[i+1] > values[i] && values[i+1] > values[i+2] && values[i+1] > 500){
+		for (int i = 0; i < 46; i++){
+			if(values[i+2] > values[i] && values[i+2] > values[i+1] && values[i+2] > values[i+3] && values[i+2] > values[i+4] && values[i+2] > 500){
 				peaks[i+1] = 1;
 			}
 		}
@@ -2104,7 +2104,7 @@ main(void)
 			//rate = 60000.0f/(float)time_gap;
 		}
 
-		//warpPrint("rate = %d,", (int)rate);
+		warpPrint("Rate = %d,", (int)rate);
 		//warpPrint("%d, ", elapsed_time);
 		clear_screen();
 		int hundred = (int)(rate/100) % 10;
@@ -2134,7 +2134,7 @@ main(void)
 		//retrieve current in microamps
 		uint8_t current = readINA(0x04, 2);
 		int16_t correctedValue = (((deviceINA219State.i2cBuffer[0] & 0xFF) << 8) | (deviceINA219State.i2cBuffer[1] & 0xFF))*50;
-		warpPrint("%d,", correctedValue);
+		warpPrint("Current = %d,", correctedValue);
 
 		OSA_TimeDelay(100); //here to make the loop time more consistent (probably remove)
 	}

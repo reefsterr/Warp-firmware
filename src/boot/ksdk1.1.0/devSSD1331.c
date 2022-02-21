@@ -157,10 +157,10 @@ devSSD1331init(void)
 	writeCommand(0x3F);
 
 	writeCommand(0x00); //line colors
-	writeCommand(0xFF);
+	writeCommand(0x00);
 	writeCommand(0x00);
 	writeCommand(0x00); //fill colors
-	writeCommand(0xFF);
+	writeCommand(0x00);
 	writeCommand(0x00);
 
 	/*
@@ -205,28 +205,28 @@ void draw_number(int number, int position){
 	/*function to draw the necessary lines on the seven segment display
 	to show the given number in the required position*/
 	if(number == 4 || number == 5 || number == 6 || number == 8 || number == 9 || number == 0){
-		draw_rectangle(6 + 29 * position, 10, 10 + 29 * position, 30, 255, 0, 0);
+		draw_rectangle(6 + 29 * position, 10, 10 + 29 * position, 30, 0, 0, 255);
 	}
 	if(number == 2 || number == 3 || number == 5 || number == 6 || number == 7 || number == 8 || number == 9 || number == 0){
-		draw_rectangle(6 + 29 * position, 10, 26 + 29 * position, 14, 255, 0, 0);
+		draw_rectangle(6 + 29 * position, 10, 26 + 29 * position, 14, 0, 0, 255);
 	}
 	if(number == 1 || number == 2 || number == 3 || number == 4 || number == 7 || number == 8 || number == 9 || number == 0){
-		draw_rectangle(26 + 29 * position, 10, 30 + 29 * position, 30, 255, 0, 0);
+		draw_rectangle(26 + 29 * position, 10, 30 + 29 * position, 30, 0, 0, 255);
 	}
 	if(number == 1 || number == 3 || number == 4 || number == 5 || number == 6 || number == 7 || number == 8 || number == 9 || number == 0){
-		draw_rectangle(26 + 29 * position, 34, 30 + 29 * position, 54, 255, 0, 0);
+		draw_rectangle(26 + 29 * position, 34, 30 + 29 * position, 54, 0, 0, 255);
 	}
 	if(number == 2 || number == 3 || number == 4 || number == 5 || number == 6 || number == 8 || number == 9){
-		draw_rectangle(6 + 29 * position, 30, 30 + 29 * position, 34, 255, 0, 0);
+		draw_rectangle(6 + 29 * position, 30, 30 + 29 * position, 34, 0, 0, 255);
 	}
 	if(number == 2 || number == 6 || number == 8 || number == 0){
-		draw_rectangle(6 + 29 * position, 34, 10 + 29 * position, 54, 255, 0, 0);
+		draw_rectangle(6 + 29 * position, 34, 10 + 29 * position, 54, 0, 0, 255);
 	}
 	if(number == 2 || number == 3 || number == 5 || number == 6 || number == 8 || number == 0){
-		draw_rectangle(6 + 29 * position, 50, 26 + 29 * position, 54, 255, 0, 0);
+		draw_rectangle(6 + 29 * position, 50, 26 + 29 * position, 54, 0, 0, 255);
 	}
 	if(number == 10){
-		draw_rectangle(32*position, 0, 32*position + 32, 0x3F, 0, 255, 0);
+		draw_rectangle(32*position, 0, 32*position + 32, 0x3F, 0, 0, 0);
 	}
 }
 

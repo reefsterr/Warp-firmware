@@ -2109,13 +2109,13 @@ main(void)
 		//warpPrint("Rate = %d \n", (int)rate);
 		//warpPrint("%d, ", elapsed_time);
 		//clear_screen();
-		if(update_counter == 10){
+		if(update_counter == 10){ //updates ever 10 loops to speed up loop, make output more stable, and more accurate
 			int hundred = (int)(rate/100) % 10;
 			int ten = (int)(rate/10) % 10;
 			int one = (int)rate % 10;
 
-			if(one != current_third_digit){
-				draw_number(10, 2);
+			if(one != current_third_digit){ //only redraw digits if they've changed
+				draw_number(10, 2); //drawing a '10' erases the previous number'
 				draw_number(one, 2);
 				current_third_digit = one;
 			}
@@ -2143,7 +2143,7 @@ main(void)
 		//int16_t correctedValue = (((deviceINA219State.i2cBuffer[0] & 0xFF) << 8) | (deviceINA219State.i2cBuffer[1] & 0xFF))*50;
 		//warpPrint("Current = %d,", correctedValue);
 
-		OSA_TimeDelay(50);
+		OSA_TimeDelay(50); //makes performance more consistent, because more time is spent between updates
 	}
 
 	return 0;

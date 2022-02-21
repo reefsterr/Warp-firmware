@@ -2041,12 +2041,13 @@ main(void)
 	writeINARegister(0x05, 0x20, 0x00); //Write to calibration register
 
 	//variables for rate calculations that persist between loops
-	int16_t values[50] = { 0 }; //stores accelerometer data
-	int16_t gaps[50] = { 0 }; //stores the time taken in each loop
+	int16_t values[25] = { 0 }; //stores accelerometer data
+	int16_t gaps[25] = { 0 }; //stores the time taken in each loop
 	int16_t previous_time = 0;
 	int current_first_digit = 0;
 	int current_second_digit = 0;
 	int current_third_digit = 0;
+	int update_counter = 0;
 
 	
 
@@ -2057,24 +2058,25 @@ main(void)
 
 		int16_t current_time = OSA_TimeGetMsec();
 		int16_t elapsed_time = current_time - previous_time;
+		warpPrint("%d, ", elapsed_time);
 		previous_time = current_time;
 
-		for (int i = 0; i < 49; i++){ //shifts data along, making space for new data point and removing oldest
-			values[49-i] = values[48-i];
+		for (int i = 0; i < 24; i++){ //shifts data along, making space for new data point and removing oldest
+			values[24-i] = values[23-i];
 		}
 
-		for (int i = 0; i < 48; i++){ //shifts data along, making space for new data point and removing oldest
-			gaps[49-i] = gaps[48-i];
+		for (int i = 0; i < 24; i++){ //shifts data along, making space for new data point and removing oldest
+			gaps[24-i] = gaps[23-i];
 		}
 
 		values[0] = x_val;
 		gaps[0] = elapsed_time;
 
-		int16_t peaks[50] = { 0 }; //array to store location of the peaks in the data
+		int16_t peaks[25] = { 0 }; //array to store location of the peaks in the data
 
 		//identifies peaks in the data by looking for points above a threshold value, with 2 lower values either side
 		//maybe try one value either side?
-		for (int i = 0; i < 46; i++){
+		for (int i = 0; i < 21; i++){
 			if(values[i+2] > values[i] && values[i+2] > values[i+1] && values[i+2] > values[i+3] && values[i+2] > values[i+4] && values[i+2] > 500){
 				peaks[i+1] = 1;
 			}
@@ -2084,14 +2086,14 @@ main(void)
 		int16_t time_gap = 0;
 
 		//iterates through the peaks data to determine the time gap between strokes and therefore the length of the stroke
-		for (int i = 0; i < 50; i++){
+		for (int i = 0; i < 25; i++){
 			if(peaks[i] == 1){
-				for (int j = i + 1; j < 50; j++){
-					time_gap = time_gap + 200;
+				for (int j = i + 1; j < 25; j++){
+					time_gap = time_gap + gaps[j];
 					if(peaks[j] == 1){
-						gap = j - i;
-						j = 50;
-						i = 50;
+						gap = j-i;
+						j = 25;
+						i = 25;
 					}
 				}
 			}
@@ -2100,43 +2102,48 @@ main(void)
 		float rate = 0.0f;
 
 		if(gap > 1){ //only calculate rate if there is a positive gap
-			rate = 60000.0f/(gap*(float)elapsed_time);
-			//rate = 60000.0f/(float)time_gap;
+			//rate = 60000.0f/(gap*(float)elapsed_time);
+			rate = 60000.0f/(float)time_gap;
 		}
 
-		warpPrint("Rate = %d,", (int)rate);
+		//warpPrint("Rate = %d \n", (int)rate);
 		//warpPrint("%d, ", elapsed_time);
-		clear_screen();
-		int hundred = (int)(rate/100) % 10;
-		int ten = (int)(rate/10) % 10;
-		int one = (int)rate % 10;
+		//clear_screen();
+		if(update_counter == 10){
+			int hundred = (int)(rate/100) % 10;
+			int ten = (int)(rate/10) % 10;
+			int one = (int)rate % 10;
 
-		if(one != current_third_digit){
-			draw_number(one, 2);
-			current_third_digit = one;
+			if(one != current_third_digit){
+				draw_number(10, 2);
+				draw_number(one, 2);
+				current_third_digit = one;
+			}
+			if(ten != current_second_digit && rate > 10){
+				draw_number(10, 1);
+				draw_number(ten, 1);
+				current_second_digit = ten;
+			}
+			if(hundred != current_first_digit && rate > 100){
+				draw_number(10, 0);
+				draw_number(hundred, 0);
+				current_first_digit = hundred;
+			}
+			if(rate < 100){
+				draw_number(10, 0);
+			}
+			if(rate < 10){
+				draw_number(10, 1);
+			}
+			update_counter = 0;
 		}
-		if(ten != current_second_digit && rate > 10){
-			draw_number(ten, 1);
-			current_second_digit = ten;
-		}
-		if(hundred != current_first_digit && rate > 100){
-			draw_number(hundred, 0);
-			current_first_digit = hundred;
-		}
-		/*draw_number(one, 2);
-		if(rate>10){
-			draw_number(ten, 1);
-		}
-		if(rate>100){
-			draw_number(hundred, 0);
-		}*/
-
+		update_counter++;
 		//retrieve current in microamps
-		uint8_t current = readINA(0x04, 2);
-		int16_t correctedValue = (((deviceINA219State.i2cBuffer[0] & 0xFF) << 8) | (deviceINA219State.i2cBuffer[1] & 0xFF))*50;
-		warpPrint("Current = %d,", correctedValue);
+		//uint8_t current = readINA(0x04, 2);
+		//int16_t correctedValue = (((deviceINA219State.i2cBuffer[0] & 0xFF) << 8) | (deviceINA219State.i2cBuffer[1] & 0xFF))*50;
+		//warpPrint("Current = %d,", correctedValue);
 
-		OSA_TimeDelay(100); //here to make the loop time more consistent (probably remove)
+		OSA_TimeDelay(50);
 	}
 
 	return 0;

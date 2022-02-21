@@ -184,7 +184,7 @@ devSSD1331init(void)
 	return 0;
 }
 
-int draw_rectangle(int x_start, int y_start, int x_end, int y_end, int red, int blue, int green){
+int draw_rectangle(int x_start, int y_start, int x_end, int y_end, int red, int green, int blue){
 	writeCommand(0x22); //draw rectangle
 	writeCommand(x_start);
 	writeCommand(y_start);
@@ -224,6 +224,9 @@ void draw_number(int number, int position){
 	}
 	if(number == 2 || number == 3 || number == 5 || number == 6 || number == 8 || number == 0){
 		draw_rectangle(6 + 29 * position, 50, 26 + 29 * position, 54, 255, 0, 0);
+	}
+	if(number == 10){
+		draw_rectangle(32*position, 0, 32*position + 32, 0x3F, 0, 255, 0);
 	}
 }
 
